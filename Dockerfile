@@ -1,12 +1,21 @@
-FROM python:3.12-slim
+# Use uma versão estável do Python
+FROM python:3.11-slim
 
-WORKDIR /app
+# Definir o diretório de trabalho
+WORKDIR /portfolio-vinicios
 
+# Copiar o arquivo de requirements para instalar dependências
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
+# Instalar as dependências
+RUN pip install --no-cache-dir --upgrade pip setuptools && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copiar todo o código da aplicação para dentro do contêiner
 COPY . .
 
-EXPOSE 80
+# Expor a porta que a aplicação Flask vai rodar
+EXPOSE 3070
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:80", "run:app"]
+# Comando para rodar a aplicação com Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:3070", "app:app"]
