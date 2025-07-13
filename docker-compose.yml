@@ -1,11 +1,33 @@
-version: '3.8'  # Versão do Docker Compose
+version: '3.8'
 
-services:  # Definição dos serviços
-  web:  # Nome do serviço
-    build: .  # Usar o Dockerfile no diretório atual para construir a imagem
-    volumes:
-      - .:/portfolio-vinicios  # Montar o diretório atual no contêiner
+services:
+  traefik:
+    image: traefik:latest
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=viniciosraymundo@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "3070:3070"  # Mapear a porta 6000 do contêiner para a porta 6000 do host
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "traefik_letsencrypt:/letsencrypt"
+
+  web:
+    build: .
+    volumes:
+      - .:/portfolio-vinicios
     environment:
-      FLASK_ENV: development  # Configuração do ambiente Flask
+      FLASK_ENV: production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`viniciosraymundo.dev`) || Host(`www.viniciosraymundo.dev`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=myresolver"
+      - "traefik.http.services.web.loadbalancer.server.port=3070"
+    restart: always
