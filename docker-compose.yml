@@ -11,9 +11,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.web.rule=Host(`viniciosraymundo.dev`) || Host(`www.viniciosraymundo.dev`)"
       - "traefik.http.routers.web.entrypoints=websecure"
-      - "traefik.http.routers.web.tls.certresolver=myresolver"
+      - "traefik.http.routers.web.tls.certresolver=letsencrypt"
       - "traefik.http.services.web.loadbalancer.server.port=3070"
+      - "traefik.http.routers.web-http.rule=Host(`viniciosraymundo.dev`) || Host(`www.viniciosraymundo.dev`)"
+      - "traefik.http.routers.web-http.entrypoints=web"
+      - "traefik.http.routers.web-http.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
 networks:
   default:
     external:
-      name: traefik
+      name: dokploy-network
